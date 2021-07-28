@@ -7,73 +7,81 @@ import { useHistory } from "react-router-dom";
 const LocalStorageComponent = () => {
   const history = useHistory();
   const [userName, setUserName] = useState("");
+  const [userID, setUserID] = useState("");
   const [userpw, setUserpw] = useState("");
   const [check, setCheck] = useState(false);
 
   const saveData = () => {
-    const userObj = { name: userName };
-    console.log(userObj);
-    window.sessionStorage.setItem("userName", JSON.stringify(userObj));
+    //로그인 API
+    const loginInfo = {
+      id: userID,
+      pw: userpw,
+    };
+    console.log(loginInfo);
+    axios.post("http://localhost:8080/login/", loginInfo).then((x) => {
+      console.log(x.data);
+      window.sessionStorage.setItem("userName", x.data.name);
 
-    const userObj2 = { pw: userpw };
-    console.log(userObj2);
-    window.sessionStorage.setItem("userpw", JSON.stringify(userObj2));
+      // const userObj2 = { pw: userpw };
+      // console.log(userObj2);
+      // window.sessionStorage.setItem("userpw", JSON.stringify(userObj2));
+      setUserName(window.sessionStorage.getItem("userName"));
+      setCheck(true);
+    });
+  };
+
+  const LogCurrentName = () => {
+    console.log({ name: window.sessionStorage.getItem("userName") });
+  };
+  //삭제 API
+  const deleteData = () => {
+    window.sessionStorage.clear();
+    LogCurrentName();
+
+    setUserName("");
+    setCheck(false);
   };
 
   const callData = () => {
-    setCheck(true);
+    LogCurrentName();
   };
-
   const onChange = (e) => {
-    setUserName(e.target.value);
-    setCheck(false);
+    setUserID(e.target.value);
   };
 
   const onChangepw = (e) => {
     setUserpw(e.target.value);
-    setCheck(false);
   };
 
   //로그인 정보를 올리는 API
-  const login = () => {
-    const loginInfo = {
-      name: userName,
-      pw: userpw,
-    };
-    console.log(loginInfo);
-    axios.post("http://localhost:8080/login/courses", loginInfo).then((res) => {
-      history.push("/");
-    });
-  };
 
   return (
     <div>
-      <input
-        name="userName"
-        value={userName}
-        onChange={onChange}
-        placeholder="이름을 입력하세요!"
-      />
-      <input
-        name="pw"
-        value={userpw}
-        onChange={onChangepw}
-        placeholder="비밀번호 입력하세요!"
-      />
-
-      <button onClick={saveData}>저장하기</button>
-      <button onClick={callData}> 불러오기</button>
-      <button onClick="">로그아웃</button>
-      <button onClick={login}>로그인 API</button>
-
       {check ? (
-        <p>
-          {window.sessionStorage.getItem("userName")}
-          {window.sessionStorage.getItem("userpw")}
-        </p>
+        <p>{userName + "님 환영합니다."}</p>
       ) : (
-        <> </>
+        <div>
+          <input
+            name="ID"
+            value={userID}
+            onChange={onChange}
+            placeholder="이름을 입력하세요!"
+          />
+          <input
+            name="pw"
+            value={userpw}
+            onChange={onChangepw}
+            placeholder="비밀번호 입력하세요!"
+          />
+        </div>
       )}
+      {!check ? (
+        <button onClick={saveData}>로그인</button>
+      ) : (
+        <button onClick={deleteData}>로그아웃</button>
+      )}
+
+      <button onClick={callData}>세션정보</button>
     </div>
   );
 };
